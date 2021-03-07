@@ -23,5 +23,7 @@ public class Attribute {
     public String toString() {
     	return String.format("Attribute %s <{%s}>", this.name, this.type.toString());
     }
-    
+
+
+
 }

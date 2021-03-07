@@ -19,9 +19,9 @@ public class Driver {
 		System.out.println();
 
 		HashMap<String, Object> attrValues1 = new HashMap<String, Object>();
-		attrValues1.put("Attr1", Integer.valueOf(11));
+		attrValues1.put("Attr1", Integer.valueOf(111));
 		attrValues1.put("Attr2", "type12");
-		attrValues1.put("Attr3", Integer.valueOf(2));
+		attrValues1.put("Attr3", Integer.valueOf(22));
 
 		Relation r = new Relation("R1", tAttrs, testTuples, tAttrs.get(0));
 		System.out.println(r.getPK());
@@ -32,8 +32,11 @@ public class Driver {
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
-		System.out.println("Relation after");
+		System.out.println("Relation after\n");
 		r.printRelation();
+		System.out.println("Relation after delete\n");
+		r.deleteTuple("Attr1", "equals", 4);
+		r.primaryKeys();
 		
 		
 	}

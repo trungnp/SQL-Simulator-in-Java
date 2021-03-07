@@ -61,29 +61,60 @@ public class Relation {
 		}
 		return false;
 	}
-	
+
+	public Set<Object> primaryKeys() {
+		Set<Object> PK_List = new HashSet<>();
+		for(Tuple t : tuples) {
+			PK_List.add(t.getAttribute(this.PK.getName()));
+		}
+		return PK_List;
+	}
+
+	//insert a new tuple into the relation
 	public void insertTuple(Tuple newTuple) {
-		if(newTuple.getAttribute(this.PK.getName()) == null || newTuple.getAttribute(this.PK.getName()) == "") {
-			throw new IllegalArgumentException("Primary key cannot be nulll. Insert failed!");
+		if(newTuple.getAttributeNames().size() != attributes.size()) throw new IllegalArgumentException("Number of fields of the new tuple does not match number of attributes");
+		else {
+			for(int i = 0; i < attributes.size(); i++) {
+				Class attrType = attributes.get(i).getType();
+				Class valueTypeTuple = newTuple.getTupleValues().get(attributes.get(i).getName()).getClass();
+				if(!attrType.equals(valueTypeTuple)) throw new IllegalArgumentException("Type incompatible.");
+			}
 		}
-		for(int i = 0; i < attributes.size(); i++) {
-			Class attrType = attributes.get(i).getType();
-			Class valueTypeTuple = newTuple.getTupleValues().get(attributes.get(i).getName()).getClass();
-			if(!attrType.equals(valueTypeTuple)) throw new IllegalArgumentException("Type incompatible.");
-		}
+
 		ArrayList<Tuple> tmp = new ArrayList<>(this.tuples);
 		tmp.add(newTuple);
-		if(hasDuplicate(tmp)) {
-			throw new IllegalArgumentException("The new tuple is duplicate and is discarded.");
-		}
-		//else {
+
+		if(hasDuplicate(tmp)) throw new IllegalArgumentException("The new tuple is duplicate and is discarded.");
+		else if(isPrimaryNull(tmp)) throw new IllegalArgumentException("Primary key cannot be nulll. Insert failed!");
+		else if(primaryKeys().contains(newTuple.getAttribute(this.PK.getName()))) throw new IllegalArgumentException("Primary key is duplicate");
+		else {
 			this.tuples = tmp;
 			System.out.println("Insert new tuple successfully.");
-		//}
+		}
 	}
-	
-	public void deleteTuple() {
-		
+
+	//delete tuples based on condition applying on attribute attr
+	public void deleteTuple(String attrName, String condition, Object operand) {
+		switch (condition) {
+			case "=":
+			case "equals":
+				for(Tuple t : tuples) {
+					if(t.getAttribute(attrName).equals(operand))
+						tuples.remove(t);
+				}
+//			case "<":
+//			case "less than":
+//				for(Tuple t : tuples) {
+//					if(t.getAttribute(attrName) < operand)
+//						tuples.remove(t);
+//				}
+//			case ">":
+//			case "greater than":
+//				for(Tuple t : tuples) {
+//					if(t.getAttribute(attrName) > operand)
+//						tuples.remove(t);
+//				}
+		}
 	}
 	
 	public void updateTuple() {
