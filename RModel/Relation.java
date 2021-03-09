@@ -11,6 +11,7 @@ public class Relation {
 	private ArrayList<Attribute> attributes;
 	private Attribute PK; //Primary key of the relation, PK is in attributes
 	private Map<Relation, Attribute> FKs; //Foreign keys of the relation. It must keep track of which relation it references to.
+	private Map<Attribute, Relation> referencingRelation; //keep track of which relation it is referencing to.
 	private Read_Write_Data rw;
 
 	//create a new relation with a PK, set of foreign keys, and an initial set of tuples
@@ -19,7 +20,7 @@ public class Relation {
 		this.name = name;
 		this.attributes = new ArrayList<Attribute>(attrs);
 		this.FKs = new HashMap<Relation, Attribute>(FKs);
-		this.PK = PK;
+		addReferencingRelation(FKs);
 		if(violate_ReferentialIntegrityConstrainst()) throw new Exception("Foreign key values must be either null or equal to the values of the referencing primary keys");
 		if (isPrimaryNull(tuples)) throw new Exception("Primary key is null, please check primary key column.");
 		if(hasDuplicate(tuples)) throw new Exception("There are duplicate tuples, please check the set of tuple.");
@@ -32,6 +33,7 @@ public class Relation {
 		this.attributes = new ArrayList<Attribute>(attrs);
 		this.tuples = new ArrayList<Tuple>();
 		this.FKs = new HashMap<Relation, Attribute>(FKs);
+		addReferencingRelation(FKs);
 		this.PK = PK;
 	}
 
@@ -89,6 +91,12 @@ public class Relation {
 	}
 	/*-----------------------Data Definition-----------------------*/
 
+	//keep track of which relation it is referencing to
+	public void addReferencingRelation(Map<Relation, Attribute> FKs) {
+		for (Map.Entry<Relation, Attribute> entry : FKs.entrySet()) {
+			entry.getKey().referencingRelation.put(entry.getValue(), entry.getKey());
+		}
+	}
 
 	//get values of a column
 	public ArrayList<Object> getValuesOfColumn(Collection<Tuple> tuples, Attribute attr) {
@@ -98,14 +106,14 @@ public class Relation {
 		return result;
 	}
 
+	//get foreign keys of the relation
+	public Map<Relation, Attribute> getFKs() {
+		return this.FKs;
+	}
 
 	//return primary keys of the relation
 	public Set<Object> primaryKeys() {
-		Set<Object> PK_List = new HashSet<>();
-		for(Tuple t : tuples) {
-			PK_List.add(t.getAttribute(this.PK.getName()));
-		}
-		return PK_List;
+		return new HashSet<>(getValuesOfColumn(getTuples(), getPK()));
 	}
 
 	//get name of the relation
@@ -136,15 +144,17 @@ public class Relation {
 			}
 		}
 
-		ArrayList<Tuple> tmp = new ArrayList<>(getTuples());
-		tmp.add(newTuple);
-
-		if(hasDuplicate(tmp)) throw new IllegalArgumentException("The new tuple is duplicate and is discarded.");
-		else if(isPrimaryNull(tmp)) throw new IllegalArgumentException("Primary key cannot be nulll. Insert failed!");
+		if(getTuples().contains(newTuple)) throw new IllegalArgumentException("The new tuple is duplicate and is discarded.");
+		else if(newTuple.getAttribute(getPK().getName()) == null || newTuple.getAttribute(getPK().getName()).equals("")) throw new IllegalArgumentException("Primary key cannot be nulll. Insert failed!");
 		else if(primaryKeys().contains(newTuple.getAttribute(this.PK.getName()))) throw new IllegalArgumentException("Primary key is duplicate");
 		else {
-			this.tuples = tmp;
-			System.out.println("Insert new tuple successfully.");
+			ArrayList<Tuple> reverse = new ArrayList<>(getTuples());
+			this.tuples.add(newTuple);
+			if(violate_ReferentialIntegrityConstrainst()) {
+				this.tuples = reverse;
+				throw new IllegalArgumentException("New tuple violates referential integrity constraint.");
+			} else
+				System.out.println("Insert new tuple successfully.");
 		}
 	}
 
@@ -167,6 +177,17 @@ public class Relation {
 				else
 					this.tuples.removeIf(t -> t.getAttribute(attrName).toString().compareTo(operand.toString()) > 0);
 		}
+		//check if there is any relation referencing to the deleted primary key, then set that value to null
+		if(referencingRelation.size() > 0) {
+			for(Map.Entry<Attribute, Relation> entry : referencingRelation.entrySet()) {
+				ArrayList<Object> referencedValues = entry.getValue().getValuesOfColumn(entry.getValue().getTuples(),entry.getKey());
+				for(Object o : referencedValues) {
+					if(!getValuesOfColumn(getTuples(), entry.getKey()).contains(o)) {
+						o = null;
+					}
+				}
+			}
+		}
 	}
 	
 	public void updateTuple() {
@@ -175,7 +196,7 @@ public class Relation {
 
 	/*-----------------------Data Manipulation-----------------------*/
 
-	public String getPK() {return this.PK.getName();}
+	public Attribute getPK() {return this.PK;}
 	
 	public void printRelation() {
 //		System.out.println(Arrays.toString(attributes.toArray()));

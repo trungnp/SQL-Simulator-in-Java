@@ -1,1 +1,6 @@
 SSN, Fname, Mname, Lname, Cell_Phone, Home_Address
+111111111, John, Tan, Smith, 404-111-222, 777 Heaven Rd
+222222222, Eric, Ma, Dan, 404-111,333, 111 Cell Rd
+333333333, Elizabeth, Kin, Ma, 404-222-101, 110 Ink Rd
+123456789, Sasha, Ren, King, 404-123-100, 1782 Ink rd
+111333222, Phuoc, Trung, Nguyen, 404-119-911, 2183 Yelp

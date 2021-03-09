@@ -46,9 +46,9 @@ public class Driver {
 		//rw.deleteTupleFromRelation(r, testTuples.get(1));
 		System.out.println();
 		rw.readAllTuplesOfRelation(r);
-		if(rw.deleteRelation(r)) {
-			System.out.println("Delete R1");
-		}
+//		if(rw.deleteRelation(r)) {
+//			System.out.println("Delete R1");
+//		}
 	}
 	
 	public static ArrayList<Attribute> getTestAttributes() {

@@ -1,1 +1,6 @@
 Ins_Key, Ins_Name
+1, Saxophone
+2, Drum
+3, Piano
+4, Guitar
+5, Harmonica

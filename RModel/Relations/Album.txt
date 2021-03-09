@@ -1,1 +1,6 @@
-Album_ID, Title, Format, Copyright_Date, Prod_SSN
+Album_ID, Title, Copyright_Date, Prod_SSN
+1, Baby Shark, 2030, 123456789
+2, On The Floor, 2020, 111111111
+3, Hip Don't Lie, 2015, 222222222
+4, Heal The World, 2000, 333333333
+5, Baby, 1999, 111333222
