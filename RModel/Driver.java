@@ -1,14 +1,17 @@
 package RModel;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Driver {
 
 	public static void main(String[] args) throws Exception {
-
 		ArrayList<Attribute> tAttrs = getTestAttributes();
 		ArrayList<Tuple> testTuples = getTestTuples();
+		Read_Write_Data rw = new Read_Write_Data();
 		
 		// printing an attribute
 		System.out.println("ATTRIBUTE -- " + tAttrs.get(0));
@@ -24,21 +27,28 @@ public class Driver {
 		attrValues1.put("Attr3", Integer.valueOf(22));
 
 		Relation r = new Relation("R1", tAttrs, testTuples, tAttrs.get(0));
+		rw.createRelation(r);
 		System.out.println(r.getPK());
 		System.out.println("Relation before");
 		r.printRelation();
 		try {
 			r.insertTuple(new Tuple(attrValues1));
+			testTuples.add(new Tuple(attrValues1));
+			rw.writeTuplesToRelation(r, testTuples);
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
 		System.out.println("Relation after\n");
 		r.printRelation();
 		System.out.println("Relation after delete\n");
-		r.deleteTuple("Attr1", "equals", 4);
-		r.primaryKeys();
-		
-		
+		//r.deleteTuple("Attr1", "equals", 4);
+		r.printRelation();
+		//rw.deleteTupleFromRelation(r, testTuples.get(1));
+		System.out.println();
+		rw.readAllTuplesOfRelation(r);
+		if(rw.deleteRelation(r)) {
+			System.out.println("Delete R1");
+		}
 	}
 	
 	public static ArrayList<Attribute> getTestAttributes() {

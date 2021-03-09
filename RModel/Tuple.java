@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 
-public class Tuple implements Comparable{
+public class Tuple {
 
 	private Map<String, Object> tValues;
 	
@@ -41,9 +41,4 @@ public class Tuple implements Comparable{
 	}
 
 
-	@Override
-	public int compareTo(Object o) {
-		//return this.getAttribute(o.toString()) - o;
-		return 0;
-	}
 }
