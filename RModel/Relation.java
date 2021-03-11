@@ -11,90 +11,110 @@ public class Relation {
 	private ArrayList<Attribute> attributes;
 	private Attribute PK; //Primary key of the relation, PK is in attributes
 	private Map<Relation, Attribute> FKs; //Foreign keys of the relation. It must keep track of which relation it references to.
-	private Map<Attribute, Relation> referencingRelation; //keep track of which relation it is referencing to.
+	private Map<Attribute, Relation> referencingRelation; //keep track of which relation is referencing to.
 	private Read_Write_Data rw;
 
 	//create a new relation with a PK, set of foreign keys, and an initial set of tuples
 	public Relation(String name, Collection<Attribute> attrs, Collection<Tuple> tuples, Attribute PK, Map<Relation, Attribute> FKs) throws Exception {
 
 		this.name = name;
-		this.attributes = new ArrayList<Attribute>(attrs);
+		this.attributes = new ArrayList<>(attrs);
+		this.PK = PK;
 		this.FKs = new HashMap<Relation, Attribute>(FKs);
-		addReferencingRelation(FKs);
-		if(violate_ReferentialIntegrityConstrainst()) throw new Exception("Foreign key values must be either null or equal to the values of the referencing primary keys");
-		if (isPrimaryNull(tuples)) throw new Exception("Primary key is null, please check primary key column.");
-		if(hasDuplicate(tuples)) throw new Exception("There are duplicate tuples, please check the set of tuple.");
 		this.tuples = new ArrayList<>(tuples);
+		this.referencingRelation = new HashMap<>();
+		check_ReferentialConstraint(FKs, tuples);
+		check_Duplicate(tuples);
+		check_PrimaryConstraint(tuples);
+		addReferencingRelation(FKs);
+
 	}
 
 	//create a new empty relation with a primary key and a set of foreign key.
 	public Relation(String name, Collection<Attribute> attrs, Attribute PK, Map<Relation, Attribute> FKs) {
 		this.name = name;
-		this.attributes = new ArrayList<Attribute>(attrs);
+		this.attributes = new ArrayList<>(attrs);
 		this.tuples = new ArrayList<Tuple>();
 		this.FKs = new HashMap<Relation, Attribute>(FKs);
-		addReferencingRelation(FKs);
 		this.PK = PK;
+		this.referencingRelation = new HashMap<>();
+		addReferencingRelation(FKs);
 	}
 
 	//create a new empty relation with a primary key.
 	public Relation(String name, Collection<Attribute> attrs, Attribute PK) {
 		
 		this.name = name;
-		this.attributes = new ArrayList<Attribute>(attrs); 
+		this.attributes = new ArrayList<>(attrs);
 		this.tuples = new ArrayList<Tuple>();
 		this.FKs = new HashMap<Relation, Attribute>();
 		this.PK = PK;
+		this.referencingRelation = new HashMap<>();
 	}
 
 	//create a new relation with a primary key and an initial set of tuples.
-	public Relation(String name, Collection<Attribute> attrs, Collection<Tuple> tuples, Attribute PK) throws Exception {
+	public Relation(String name, Collection<Attribute> attrs, Collection<Tuple> tuples, Attribute PK) {
 		
 		this.name = name;
-		this.attributes = new ArrayList<Attribute>(attrs);
+		this.attributes = new ArrayList<>(attrs);
 		this.FKs = new HashMap<Relation, Attribute>();
 		this.PK = PK;
-		if (isPrimaryNull(tuples)) throw new Exception("Primary key is null, please check primary key column.");
-		if(hasDuplicate(tuples)) throw new Exception("There are duplicate tuples, please check the set of tuple.");
 		this.tuples = new ArrayList<>(tuples);
+		this.referencingRelation = new HashMap<>();
+		check_PrimaryConstraint(tuples);
+		check_Duplicate(tuples);
 	}
 
 	/*-----------------------Data Definition-----------------------*/
 	//check whether is there any primary key is null
-	public boolean isPrimaryNull(Collection<Tuple> tuples) {
+	public void check_PrimaryConstraint(Collection<Tuple> tuples) {
 		ArrayList<Object> primaryKeys = getValuesOfColumn(tuples, this.PK);
-		return primaryKeys.contains(null) || primaryKeys.contains("");
+		Set<Object> uniquePKs = new HashSet<>(primaryKeys);
+		if(primaryKeys.contains(null) || primaryKeys.contains(""))
+			throw new IllegalArgumentException("Primary keys cannot be null.");
+		else if((primaryKeys.size() != uniquePKs.size()))
+			throw new IllegalArgumentException("Primary key cannot be duplicated.");
 	}
 
 	//check duplicate of a set of tuples
-	public boolean hasDuplicate(Collection<Tuple> tuples) {
+	public void check_Duplicate(Collection<Tuple> tuples) {
 		Set<Map<String, Object>> set = new HashSet<>();
 		for(Tuple t : tuples) {
 			if (!set.add(t.getTupleValues()))
-				return true;
+				throw new IllegalArgumentException("There is duplicate tuple.");
 		}
-		return false;
+	}
+
+	//check domain constraint
+	public void check_DomainConstraint(Collection<Tuple> tuples) {
+		for(Tuple tuple : tuples) {
+			if(attributes.size() != tuple.getAttributeValues().size()) throw new IllegalArgumentException("Number of fields of the new tuple does not match number of attributes");
+			else {
+				for(Attribute a : attributes) {
+					if(!a.getType().equals(tuple.getAttribute(a.getName()).getClass()))
+						throw new IllegalArgumentException("Domain constraint is violated, type incompatible.");
+				}
+			}
+		}
 	}
 
 	//check referential integrity constraints
-	public boolean violate_ReferentialIntegrityConstrainst() {
-		for(Map.Entry<Relation, Attribute> entry : this.FKs.entrySet()) {
+	public void check_ReferentialConstraint(Map<Relation, Attribute> FKs, Collection<Tuple> tuples) {
+		for(Map.Entry<Relation, Attribute> entry : FKs.entrySet()) {
 			Set<Object> referencedAttrs = entry.getKey().primaryKeys();
-			ArrayList<Object> referencingAttr = getValuesOfColumn(getTuples(), entry.getValue());
-
+			ArrayList<Object> referencingAttr = getValuesOfColumn(tuples, entry.getValue());
 			for(Object o : referencingAttr) {
-				if(!referencedAttrs.contains(o) || o != null)
-					return true;
+				if(!referencedAttrs.contains(o) && o != null)
+					throw new IllegalArgumentException("Violates referential integrity constraint.");
 			}
 		}
-		return false;
 	}
 	/*-----------------------Data Definition-----------------------*/
 
 	//keep track of which relation it is referencing to
 	public void addReferencingRelation(Map<Relation, Attribute> FKs) {
 		for (Map.Entry<Relation, Attribute> entry : FKs.entrySet()) {
-			entry.getKey().referencingRelation.put(entry.getValue(), entry.getKey());
+			entry.getKey().referencingRelation.put(entry.getValue(), this);
 		}
 	}
 
@@ -131,84 +151,136 @@ public class Relation {
 		return this.tuples;
 	}
 
+	//get the primary key of the relaiton
+	public Attribute getPK() {return this.PK;}
+
 
 	/*-----------------------Data Manipulation-----------------------*/
 	//insert a new tuple into the relation
 	public void insertTuple(Tuple newTuple) {
-		if(newTuple.getAttributeNames().size() != getAttributes().size()) throw new IllegalArgumentException("Number of fields of the new tuple does not match number of attributes");
-		else {
-			for(int i = 0; i < getAttributes().size(); i++) {
-				Class attrType = getAttributes().get(i).getType();
-				Class valueTypeTuple = newTuple.getTupleValues().get(getAttributes().get(i).getName()).getClass();
-				if(!attrType.equals(valueTypeTuple)) throw new IllegalArgumentException("Type incompatible.");
-			}
-		}
-
-		if(getTuples().contains(newTuple)) throw new IllegalArgumentException("The new tuple is duplicate and is discarded.");
-		else if(newTuple.getAttribute(getPK().getName()) == null || newTuple.getAttribute(getPK().getName()).equals("")) throw new IllegalArgumentException("Primary key cannot be nulll. Insert failed!");
-		else if(primaryKeys().contains(newTuple.getAttribute(this.PK.getName()))) throw new IllegalArgumentException("Primary key is duplicate");
-		else {
-			ArrayList<Tuple> reverse = new ArrayList<>(getTuples());
-			this.tuples.add(newTuple);
-			if(violate_ReferentialIntegrityConstrainst()) {
-				this.tuples = reverse;
-				throw new IllegalArgumentException("New tuple violates referential integrity constraint.");
-			} else
-				System.out.println("Insert new tuple successfully.");
-		}
+		ArrayList<Tuple> tmp = new ArrayList<>(getTuples());
+		tmp.add(newTuple);
+		if(trigger_Constraint_after_Insert(tmp))
+			this.tuples = tmp;
+		System.out.println("Insert new tuple successfully.");
 	}
 
 	//delete tuples based on condition applying on attribute attr
-	public void deleteTuple(String attrName, String condition, Object operand) {
+	public void deleteTuple(Attribute attr, String condition, Object operand) {
 		switch (condition) {
 			case "=":
 			case "equals":
-				this.tuples.removeIf(t -> t.getAttribute(attrName).equals(operand));
+				this.tuples.removeIf(t -> t.getAttribute(attr.getName()).equals(operand));
+				break;
 			case "<":
 			case "less than":
 				if(operand instanceof Integer)
-					this.tuples.removeIf(t -> (Integer)t.getAttribute(attrName) < (Integer)operand);
+					this.tuples.removeIf(t -> (Integer)t.getAttribute(attr.getName()) < (Integer)operand);
+				else if(operand instanceof String)
+					this.tuples.removeIf(t -> t.getAttribute(attr.getName()).toString().compareTo(operand.toString()) < 0);
 				else
-					this.tuples.removeIf(t -> t.getAttribute(attrName).toString().compareTo(operand.toString()) < 0);
+					throw new IllegalArgumentException("Type of the operand is incompatible with attribute " + attr.getName());
+				break;
 			case ">":
 			case "greater than":
 				if(operand instanceof Integer)
-					this.tuples.removeIf(t -> (Integer)t.getAttribute(attrName) > (Integer)operand);
+					this.tuples.removeIf(t -> (Integer)t.getAttribute(attr.getName()) > (Integer)operand);
+				else if(operand instanceof String)
+					this.tuples.removeIf(t -> t.getAttribute(attr.getName()).toString().compareTo(operand.toString()) > 0);
 				else
-					this.tuples.removeIf(t -> t.getAttribute(attrName).toString().compareTo(operand.toString()) > 0);
+					throw new IllegalArgumentException("Type of the operand is incompatible with attribute " + attr.getName());
+				break;
 		}
-		//check if there is any relation referencing to the deleted primary key, then set that value to null
-		if(referencingRelation.size() > 0) {
-			for(Map.Entry<Attribute, Relation> entry : referencingRelation.entrySet()) {
-				ArrayList<Object> referencedValues = entry.getValue().getValuesOfColumn(entry.getValue().getTuples(),entry.getKey());
-				for(Object o : referencedValues) {
-					if(!getValuesOfColumn(getTuples(), entry.getKey()).contains(o)) {
-						o = null;
-					}
+		//check referential integrity constraint
+		trigger_ReferrntialConstraint_after_Delete();
+		System.out.println("Delete successfully.");
+	}
+
+	//check whether the newTuple violates any constraint. If it does not violate, then return true
+	public boolean trigger_Constraint_after_Insert(Collection<Tuple> tmp) {
+		check_PrimaryConstraint(tmp);
+		check_DomainConstraint(tmp);
+		check_Duplicate(tmp);
+		check_ReferentialConstraint(getFKs(), tmp);
+		return true;
+	}
+
+	//check if there is any relation referencing to the deleted primary key, then set that value to null
+	public void trigger_ReferrntialConstraint_after_Delete() {
+		if (referencingRelation.size() > 0) {
+			for (Map.Entry<Attribute, Relation> entry : referencingRelation.entrySet()) {
+				Relation r = entry.getValue();
+				for (int i = 0; i < r.getTuples().size(); i++) {
+					if (!this.getValuesOfColumn(getTuples(), getPK()).contains(r.getTuples().get(i).getAttribute(entry.getKey().getName())))
+						r.getTuples().get(i).replaceAttributeValue(entry.getKey(), null);
 				}
 			}
 		}
 	}
 	
-	public void updateTuple() {
-		
+	public void updateTuple(Attribute attr, String condition, Object operand, Object newValue) {
+		ArrayList<Tuple> tmp = new ArrayList<>(getTuples());
+		for(int i = 0; i < getTuples().size(); i++) {
+			Object curValue = null;
+			switch (condition) {
+				case "=":
+				case "equals":
+					if (getTuples().get(i).getAttribute(attr.getName()).equals(operand))
+						curValue = getTuples().get(i).getAttribute(attr.getName());
+					break;
+				case "<":
+				case "less than":
+					if (operand instanceof Integer)
+						if((Integer)getTuples().get(i).getAttribute(attr.getName()) < (Integer) operand)
+							curValue = getTuples().get(i).getAttribute(attr.getName());
+					else if(getTuples().get(i).getAttribute(attr.getName()).toString().compareTo(operand.toString()) < 0)
+							curValue = getTuples().get(i).getAttribute(attr.getName());
+					break;
+				case ">":
+				case "greater than":
+					if (operand instanceof Integer)
+						if((Integer)getTuples().get(i).getAttribute(attr.getName()) > (Integer) operand)
+							curValue = getTuples().get(i).getAttribute(attr.getName());
+					else if(getTuples().get(i).getAttribute(attr.getName()).toString().compareTo(operand.toString()) > 0)
+						curValue = getTuples().get(i).getAttribute(attr.getName());
+					break;
+			}
+			if(curValue != null) {
+				tmp.get(i).replaceAttributeValue(attr, newValue);
+				trigger_Constraint_after_Update(attr, curValue, newValue);
+				System.out.println("Update successfully.");
+			}
+		}
 	}
+
+	public void trigger_Constraint_after_Update(Attribute attr, Object curValue, Object newValue) {
+		if(referencingRelation.containsKey(attr)) {
+			for(Map.Entry<Attribute, Relation> entry : referencingRelation.entrySet()) {
+				Relation r = entry.getValue();
+				for(int i = 0; i < r.getTuples().size(); i++) {
+					if(r.getTuples().get(i).getAttribute(attr.getName()).equals(curValue))
+						r.getTuples().get(i).replaceAttributeValue(attr, newValue);
+				}
+			}
+		}
+	}
+
 
 	/*-----------------------Data Manipulation-----------------------*/
 
-	public Attribute getPK() {return this.PK;}
+
 	
 	public void printRelation() {
 //		System.out.println(Arrays.toString(attributes.toArray()));
 		String str = "RELATION: " + this.name + "\n";
 		for( Attribute attr : attributes ) {
-			str += attr.getName() + "\t";
+			str += attr.getName() + "\t\t\t";
 		}
 		str += "\n";
 		for (Tuple tuple : this.tuples) {
 			for(Attribute attr: attributes ) {
 				Object val = tuple.getAttribute(attr.getName());
-				str += val + "\t";
+				str += val + "\t\t\t";
 			}
 			str += "\n";
 		}
