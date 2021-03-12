@@ -44,5 +44,12 @@ public class Tuple {
 		return new ArrayList<Object>(tValues.values());
 	}
 
+	public boolean equals(Tuple t) {
+		for(Map.Entry<String, Object> entry : tValues.entrySet()) {
+			if(!entry.getValue().equals(t.getAttribute(entry.getKey())))
+				return false;
+		}
+		return true;
+	}
 
 }

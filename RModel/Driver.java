@@ -5,6 +5,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Driver {
 
@@ -26,12 +28,20 @@ public class Driver {
 		sn.add(new Tuple(b));
 		stage_name.insertTuple(new Tuple(b));
 		stage_name.printRelation();
-		Musician.updateTuple(Musician.getPK(), "=",1,2);
+		Musician.updateTuple(Musician.getAttributes().get(2), "=",Musician.getAttributes().get(1),"abcd");
 		Musician.printRelation();
-		stage_name.printRelation();
-		Musician.deleteTuple(Musician.getPK(), "=", 2);
-		Musician.printRelation();
-		stage_name.printRelation();
+//		stage_name.printRelation();
+//		Musician.deleteTuple(Musician.getPK(), "=", 2);
+//		Musician.printRelation();
+//		stage_name.printRelation();
+//		Query query = new Query();
+//		ArrayList<Attribute> s = new ArrayList<>();
+//		s.add(getTestAttributes().get(0));
+//		s.add(getTestAttributes().get(1));
+//		s.add(getTestAttributes().get(2));
+//		query.project(s, Musician);
+//		query.select(s, Musician);
+
 
 
 		//Relation musician = new Relation("Musician", )
@@ -106,7 +116,7 @@ public class Driver {
 		HashMap<String, Object> attrValues1 = new HashMap<String, Object>();
 		attrValues1.put("SSN", Integer.valueOf(4));
 		attrValues1.put("Fname", "Phuoc");
-		attrValues1.put("Lname", "Nguyen");
+		attrValues1.put("Lname", "Phuoc");
         attrValues1.put("Cell_Phone", "111-222-3333");
         attrValues1.put("Address", "123 rd, Atlanta, USA");
 
@@ -117,17 +127,19 @@ public class Driver {
         attrValues2.put("Lname", "Nguyen");
         attrValues2.put("Cell_Phone", "111-222-3333");
         attrValues2.put("Address", "123 rd, Atlanta, USA");
-//
-//		HashMap<String, Object> attrValues3 = new HashMap<String, Object>();
-//		attrValues3.put("Attr1", Integer.valueOf(11));
-//		attrValues3.put("Attr2", "type12");
-//		attrValues3.put("Attr3", Integer.valueOf(2));
+
+		HashMap<String, Object> attrValues3 = new HashMap<String, Object>();
+		attrValues3.put("SSN", Integer.valueOf(2));
+		attrValues3.put("Fname", "Phuoccc");
+		attrValues3.put("Lname", "Nguyen");
+		attrValues3.put("Cell_Phone", "111-222-3333");
+		attrValues3.put("Address", "123 rd, Atlanta, USA");
 
 		ArrayList<Tuple> tuples = new ArrayList<Tuple>();
 
 		tuples.add( new Tuple(attrValues1) );
 		tuples.add( new Tuple(attrValues2) );
-//		tuples.add( new Tuple(attrValues3) );
+		tuples.add( new Tuple(attrValues3) );
 
 		return tuples;
 
