@@ -24,7 +24,7 @@ public class Attribute {
     	return String.format("Attribute %s <{%s}>", this.name, this.type.toString());
     }
 
-//    public boolean equals(Attribute a) {
-//        return this.getName().equals(a.getName());
-//    }
+    public boolean equals(Attribute a) {
+        return this.getName().equals(a.getName());
+    }
 }

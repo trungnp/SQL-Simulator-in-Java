@@ -173,10 +173,18 @@ public class Relation {
 	//insert a new tuple into the relation
 	public void insertTuple(Tuple newTuple) {
 		ArrayList<Tuple> tmp = new ArrayList<>(getTuples());
-		tmp.add(newTuple);
-		if(trigger_Constraint_after_Insert(tmp))
-			this.tuples = tmp;
-		System.out.println("Insert new tuple successfully.");
+		try {
+			tmp.add(newTuple);
+			if(trigger_Constraint_after_Insert(tmp)) {
+				this.tuples = tmp;
+				System.out.println("Insert new tuple to relation "+this.name+" successfully:  " +newTuple.toString());
+			}
+		} catch (IllegalArgumentException e) {
+			System.out.println("Insert new tuple to relation "+this.name+" failed due to " +e.getMessage()+ ":  " +newTuple.toString());
+//			e.printStackTrace();
+		}
+//		if(trigger_Constraint_after_Insert(tmp))
+
 	}
 
 
@@ -195,25 +203,25 @@ public class Relation {
 				break;
 			case "<":
 			case "less than":
-				if(operand instanceof Integer)
-					this.tuples.removeIf(t -> (Integer)t.getAttribute(attr.getName()) < (Integer)operand);
-				else if(operand instanceof String)
+				if (operand instanceof String || operand instanceof Integer) {
 					this.tuples.removeIf(t -> t.getAttribute(attr.getName()).toString().compareTo(operand.toString()) < 0);
-				else if(operand instanceof Attribute) {
+				} else if(operand instanceof Attribute) {
 					Attribute a = (Attribute)operand ;
 					this.tuples.removeIf(t -> t.getAttribute(attr.getName()).toString().compareTo(t.getAttribute(a.getName()).toString()) < 0);
 				}
+//				if(operand instanceof Integer)
+//					this.tuples.removeIf(t -> (Integer)t.getAttribute(attr.getName()) < (Integer)operand);
+//				else if(operand instanceof String)
+//					this.tuples.removeIf(t -> t.getAttribute(attr.getName()).toString().compareTo(operand.toString()) < 0);
 				else
 					throw new IllegalArgumentException("Type of the operand is incompatible with attribute " + attr.getName());
 				break;
 			case ">":
 			case "greater than":
-				if(operand instanceof Integer)
-					this.tuples.removeIf(t -> (Integer)t.getAttribute(attr.getName()) > (Integer)operand);
-				else if(operand instanceof String)
+				if (operand instanceof String || operand instanceof Integer) {
 					this.tuples.removeIf(t -> t.getAttribute(attr.getName()).toString().compareTo(operand.toString()) > 0);
-				else if(operand instanceof Attribute) {
-					Attribute a = (Attribute) operand;
+				} else if(operand instanceof Attribute) {
+					Attribute a = (Attribute)operand ;
 					this.tuples.removeIf(t -> t.getAttribute(attr.getName()).toString().compareTo(t.getAttribute(a.getName()).toString()) > 0);
 				}
 				else
@@ -222,7 +230,7 @@ public class Relation {
 		}
 		//check referential integrity constraint
 		trigger_ReferrntialConstraint_after_Delete();
-		System.out.println("Delete successfully.");
+		System.out.printf("Delete tuple in %s where %s %s %s successfully.%n", this.name, attr.getName(), condition, operand.toString());
 	}
 
 	//check whether the newTuple violates any constraint. If it does not violate, then return true
@@ -247,7 +255,7 @@ public class Relation {
 		}
 	}
 	
-	public void updateTuple(Attribute attr, String condition, Object operand, Object newValue) {
+	public void updateTuple(Attribute whereAttr, String condition, Object operand, Attribute setAttr, Object newValue) {
 		ArrayList<Tuple> tmp = new ArrayList<>(getTuples());
 		for(int i = 0; i < getTuples().size(); i++) {
 			Object curValue = null;
@@ -255,72 +263,93 @@ public class Relation {
 				case "=":
 				case "equals":
 					if(operand instanceof String || operand instanceof Integer) {
-						if (getTuples().get(i).getAttribute(attr.getName()).equals(operand))
-							curValue = getTuples().get(i).getAttribute(attr.getName());
+						if (getTuples().get(i).getAttribute(whereAttr.getName()).equals(operand))
+							curValue = getTuples().get(i).getAttribute(setAttr.getName());
 					}
 					else if(operand instanceof Attribute) {
 						Attribute a = (Attribute)operand ;
-						Object b = getTuples().get(i).getAttribute(attr.getName());
+						Object b = getTuples().get(i).getAttribute(setAttr.getName());
 						Object c = getTuples().get(i).getAttribute(a.getName());
 						Boolean d = b.equals(c);
 						if(d)
-							curValue = getTuples().get(i).getAttribute(attr.getName());
+							curValue = getTuples().get(i).getAttribute(whereAttr.getName());
 					} else
-						throw new IllegalArgumentException("Type of the operand is incompatible with attribute " + attr.getName());
+						throw new IllegalArgumentException("Type of the operand is incompatible with attribute " + whereAttr.getName());
 					break;
 				case "<":
 				case "less than":
-					if (operand instanceof Integer) {
-						if ((Integer) getTuples().get(i).getAttribute(attr.getName()) < (Integer) operand)
-							curValue = getTuples().get(i).getAttribute(attr.getName());
+					if (operand instanceof String || operand instanceof Integer) {
+						if (getTuples().get(i).getAttribute(whereAttr.getName()).toString().compareTo(operand.toString()) < 0 )
+							curValue = getTuples().get(i).getAttribute(setAttr.getName());
 					}
-					else if(operand instanceof String) {
-						if (getTuples().get(i).getAttribute(attr.getName()).toString().compareTo(operand.toString()) < 0)
-							curValue = getTuples().get(i).getAttribute(attr.getName());
-					}
+//					if (operand instanceof Integer) {
+//						if ((Integer) getTuples().get(i).getAttribute(whereAttr.getName()) < (Integer) operand)
+//							curValue = getTuples().get(i).getAttribute(setAttr.getName());
+//					}
+//					else if(operand instanceof String) {
+//						if (getTuples().get(i).getAttribute(whereAttr.getName()).toString().compareTo(operand.toString()) < 0)
+//							curValue = getTuples().get(i).getAttribute(setAttr.getName());
+//					}
 					else if(operand instanceof Attribute) {
 						Attribute a = (Attribute)operand ;
-						if (getTuples().get(i).getAttribute(attr.getName()).toString().compareTo(getTuples().get(i).getAttribute(a.getName()).toString()) < 0)
-							curValue = getTuples().get(i).getAttribute(attr.getName());
+						if (getTuples().get(i).getAttribute(whereAttr.getName()).toString().compareTo(getTuples().get(i).getAttribute(a.getName()).toString()) < 0)
+							curValue = getTuples().get(i).getAttribute(whereAttr.getName());
 					} else
-						throw new IllegalArgumentException("Type of the operand is incompatible with attribute " + attr.getName());
+						throw new IllegalArgumentException("Type of the operand is incompatible with attribute " + whereAttr.getName());
 					break;
 				case ">":
 				case "greater than":
-					if (operand instanceof Integer) {
-						if ((Integer) getTuples().get(i).getAttribute(attr.getName()) > (Integer) operand)
-							curValue = getTuples().get(i).getAttribute(attr.getName());
+					if (operand instanceof String || operand instanceof Integer) {
+						if (getTuples().get(i).getAttribute(whereAttr.getName()).toString().compareTo(operand.toString()) > 0 )
+							curValue = getTuples().get(i).getAttribute(setAttr.getName());
 					}
-					else if(operand instanceof String) {
-						if (getTuples().get(i).getAttribute(attr.getName()).toString().compareTo(operand.toString()) > 0)
-							curValue = getTuples().get(i).getAttribute(attr.getName());
-					}
+//					if (operand instanceof Integer) {
+//						if ((Integer) getTuples().get(i).getAttribute(whereAttr.getName()) > (Integer) operand)
+//							curValue = getTuples().get(i).getAttribute(setAttr.getName());
+//					}
+//					else if(operand instanceof String) {
+//						if (getTuples().get(i).getAttribute(whereAttr.getName()).toString().compareTo(operand.toString()) > 0)
+//							curValue = getTuples().get(i).getAttribute(setAttr.getName());
+//					}
 					else if(operand instanceof Attribute) {
 						Attribute a = (Attribute) operand;
-						if (getTuples().get(i).getAttribute(attr.getName()).toString().compareTo(getTuples().get(i).getAttribute(a.getName()).toString()) > 0)
-							curValue = getTuples().get(i).getAttribute(attr.getName());
-					}
+						if (getTuples().get(i).getAttribute(whereAttr.getName()).toString().compareTo(getTuples().get(i).getAttribute(a.getName()).toString()) > 0)
+							curValue = getTuples().get(i).getAttribute(whereAttr.getName());
+					} else
+						throw new IllegalArgumentException("Type of the operand is incompatible with attribute " + whereAttr.getName());
 					break;
 			}
 			if(curValue != null) {
-				tmp.get(i).replaceAttributeValue(attr, newValue);
-				trigger_Constraint_after_Update(attr, curValue, newValue);
-				System.out.println("Update successfully.");
+				try {
+					tmp.get(i).replaceAttributeValue(setAttr, newValue);
+					if(trigger_Constraint_after_Insert(tmp)) {
+						this.tuples = tmp;
+						trigger_Constraint_after_Update(setAttr, curValue, newValue);
+						System.out.printf("Update tuple in %s where %s %s %s set %s = %s successfully.%n", this.name, whereAttr.getName(), condition, operand.toString(), setAttr.getName(), newValue.toString());
+					}
+				} catch (IllegalArgumentException e) {
+					tmp.get(i).replaceAttributeValue(setAttr, curValue);
+					System.out.printf("Update tuple in %s where %s %s %s set %s = %s failed due to %s%n", this.name, whereAttr.getName(), condition, operand.toString(), setAttr.getName(), newValue.toString(), e.getMessage());				}
+
 			}
 		}
+
 	}
 
 	public void trigger_Constraint_after_Update(Attribute attr, Object curValue, Object newValue) {
-		if(referencingRelation.containsKey(attr)) {
 			for(Map.Entry<Attribute, Relation> entry : referencingRelation.entrySet()) {
-				Relation r = entry.getValue();
-				for(int i = 0; i < r.getTuples().size(); i++) {
-					if(r.getTuples().get(i).getAttribute(attr.getName()).equals(curValue))
-						r.getTuples().get(i).replaceAttributeValue(attr, newValue);
+				if(entry.getKey().equals(attr)) {
+					Relation r = entry.getValue();
+					for (int i = 0; i < r.getTuples().size(); i++) {
+						if (r.getTuples().get(i).getAttribute(attr.getName()).equals(curValue))
+							r.getTuples().get(i).replaceAttributeValue(attr, newValue);
+//							check_ReferentialConstraint(r.getFKs(), r.getTuples());
+					}
 				}
 			}
-		}
+//		}
 	}
+
 
 
 	/*-----------------------Data Manipulation-----------------------*/
@@ -329,12 +358,12 @@ public class Relation {
 
 	public void printTuple() {
 		for(Attribute attr : attributes) {
-			System.out.print(attr.getName() + "\t\t\t");
+			System.out.printf("%-18s", attr.getName());
 		}
 		System.out.println();
 		for (Tuple tuple : tuples) {
 			for(Attribute attr : attributes) {
-				System.out.print(tuple.getAttribute(attr.getName()) + "\t\t\t");
+				System.out.printf("%-18s", tuple.getAttribute(attr.getName()));
 			}
 			System.out.println();
 		}
@@ -342,7 +371,9 @@ public class Relation {
 	}
 	
 	public void printRelation() {
-		System.out.println("Relation Name: " +this.name);
+		if(this.getName() != null) {
+			System.out.println("Relation Name: " + this.name);
+		}
 		for(Attribute attr : attributes) {
 			System.out.printf("%-18s", attr.getName());
 		}
