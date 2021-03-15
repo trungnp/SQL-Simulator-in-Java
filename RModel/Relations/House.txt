@@ -1,6 +1,0 @@
-Address, Home_Phone
-777 Heaven Rd, 404-111-222
-111 Cell Rd, 404-111-333
-110 Ink Rd, 404-111-444
-1782 Ink rd, 404-222-111
-2183 Yelp, 404-333-123

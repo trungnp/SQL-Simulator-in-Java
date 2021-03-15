@@ -1,10 +1,12 @@
 package RModel;
 
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
+
 
 public class Read_Write_Data {
     //create a file with name of relation and the first row is a list of attributes
@@ -102,36 +104,34 @@ public class Read_Write_Data {
         return new File(pathName).delete();
     }
 
-    public void readAllTuplesOfRelation(Relation r) {
+    public ArrayList<Tuple> readAllTuplesOfRelation(Relation r) {
         String pathName = "RModel/Relations/" + r.getName() + ".txt";
+        ArrayList<Attribute> attributes = r.getAttributes();
+        ArrayList<Tuple> result = new ArrayList<>();
         try {
             ArrayList<String> allLInes = new ArrayList<String>(Files.readAllLines(Path.of(pathName)));
-            for(String s : allLInes)
-                System.out.println(s);
+            allLInes.remove(0);
+            for(String s : allLInes) {
+                String[] tupleValues = s.split(",");
+                HashMap<String, Object> value = new HashMap<>();
+                for(int i = 0; i < attributes.size(); i++) {
+                    if(attributes.get(i).getType().equals(String.class))
+                        value.put(attributes.get(i).getName(), tupleValues[i].strip());
+                    else if(attributes.get(i).getType().equals(Integer.class)) {
+                        try {
+                            value.put(attributes.get(i).getName(), Integer.valueOf(tupleValues[i].strip()));
+                        } catch (NumberFormatException e) {
+                            value.put(attributes.get(i).getName(), tupleValues[i].strip());
+                        }
+                    }
+                }
+                result.add(new Tuple(value));
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-//        File tmp = new File(pathName + ".tmp");
-//        try {
-//            BufferedReader reader = new BufferedReader(new FileReader(pathName));
-//            BufferedWriter write = new BufferedWriter(new FileWriter(tmp));
-//            String currentLine;
-//            while((currentLine = reader.readLine()) != null) {
-//                if(currentLine.equals(lineToDelete)) continue;
-//                else {
-//                    write.write(currentLine + System.getProperty("line.separator"));
-//                }
-//            }
-//            write.close();
-//            reader.close();
-//            if(new File(pathName).delete()) {
-//                tmp.renameTo(new File(pathName));
-//                System.out.println("Delted tuple " + tuple.getTupleValues() + "successfully.");
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+        return result;
     }
 
 

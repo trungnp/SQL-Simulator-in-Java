@@ -179,6 +179,7 @@ public class Relation {
 		System.out.println("Insert new tuple successfully.");
 	}
 
+
 	//delete tuples based on condition applying on attribute attr
 	public void deleteTuple(Attribute attr, String condition, Object operand) {
 		switch (condition) {
@@ -341,20 +342,18 @@ public class Relation {
 	}
 	
 	public void printRelation() {
-//		System.out.println(Arrays.toString(attributes.toArray()));
-		String str = "RELATION: " + this.name + "\n";
-		for( Attribute attr : attributes ) {
-			str += attr.getName() + "\t\t\t";
+		System.out.println("Relation Name: " +this.name);
+		for(Attribute attr : attributes) {
+			System.out.printf("%-18s", attr.getName());
 		}
-		str += "\n";
-		for (Tuple tuple : this.tuples) {
-			for(Attribute attr: attributes ) {
-				Object val = tuple.getAttribute(attr.getName());
-				str += val + "\t\t\t";
+		System.out.println();
+		for (Tuple tuple : tuples) {
+			for(Attribute attr : attributes) {
+				System.out.printf("%-18s", tuple.getAttribute(attr.getName()));
 			}
-			str += "\n";
+			System.out.println();
 		}
-		System.out.println(str);
+		System.out.println();
 	}
      
 }

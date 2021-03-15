@@ -11,138 +11,87 @@ import java.util.Set;
 public class Driver {
 
 	public static void main(String[] args) throws Exception {
+
 		Read_Write_Data rw = new Read_Write_Data();
-		Relation Musician = new Relation("Musician", getTestAttributes(), getTestAttributes().get(0));
-		HashMap<Relation, Attribute> a = new HashMap<>();
-        a.put(Musician, Musician.getPK());
 
-		for(Tuple t : getTestTuples())
-		    Musician.insertTuple(t);
-        Relation stage_name = new Relation("State_Name", getTestAttributes1(), getTestAttributes1().get(1), a);
-		Musician.printRelation();
-		//stage_name.printRelation();
-		ArrayList<Tuple> sn = new ArrayList<>();
-		HashMap<String, Object> b = new HashMap<>();
-		b.put("SSN", 1);
-		b.put("Name", "trung");
-		sn.add(new Tuple(b));
-		stage_name.insertTuple(new Tuple(b));
-		stage_name.printRelation();
-		Musician.updateTuple(Musician.getAttributes().get(2), "=",Musician.getAttributes().get(1),"abcd");
-		Musician.printRelation();
-//		stage_name.printRelation();
-//		Musician.deleteTuple(Musician.getPK(), "=", 2);
-//		Musician.printRelation();
-//		stage_name.printRelation();
-//		Query query = new Query();
-//		ArrayList<Attribute> s = new ArrayList<>();
-//		s.add(getTestAttributes().get(0));
-//		s.add(getTestAttributes().get(1));
-//		s.add(getTestAttributes().get(2));
-//		query.project(s, Musician);
-//		query.select(s, Musician);
+		HashMap<Relation, Attribute> agents_fk = new HashMap<>();
 
+		Relation agents = new Relation("AGENTS", getAgentsAttributes(), getAgentsAttributes().get(0));
+		Relation customers = new Relation("CUSTOMERS", getCustomersAttributes(), getCustomersAttributes().get(0));
+		agents_fk.put(agents, getAgentsAttributes().get(0));
+		agents_fk.put(customers, getCustomersAttributes().get(0));
+		Relation orders = new Relation("ORDERS", getOrdersAttributes(), getOrdersAttributes().get(0), agents_fk);
 
+//		rw.createRelation(agents);
+//		rw.createRelation(customers);
+//		rw.createRelation(orders);
 
-		//Relation musician = new Relation("Musician", )
-//		ArrayList<Attribute> tAttrs = getTestAttributes();
-//		ArrayList<Tuple> testTuples = getTestTuples();
-//		Read_Write_Data rw = new Read_Write_Data();
-//
-//		// printing an attribute
-//		System.out.println("ATTRIBUTE -- " + tAttrs.get(0));
-//		System.out.println();
-//
-//		// printing a tuple
-//		System.out.println("TUPLE 0 -- " + testTuples.get(0));
-//		System.out.println();
-//
-//		HashMap<String, Object> attrValues1 = new HashMap<String, Object>();
-//		attrValues1.put("Attr1", Integer.valueOf(111));
-//		attrValues1.put("Attr2", "type12");
-//		attrValues1.put("Attr3", Integer.valueOf(22));
-//
-//		Relation r = new Relation("R1", tAttrs, testTuples, tAttrs.get(0));
-//		rw.createRelation(r);
-//		System.out.println(r.getPK());
-//		System.out.println("Relation before");
-//		r.printRelation();
-//		try {
-//			r.insertTuple(new Tuple(attrValues1));
-//			testTuples.add(new Tuple(attrValues1));
-//			rw.writeTuplesToRelation(r, testTuples);
-//		} catch (Exception e) {
-//			System.out.println(e.getMessage());
+//		System.out.println(rw.readAllTuplesOfRelation(agents));
+
+//		for(Tuple t : rw.readAllTuplesOfRelation(agents)) {
+//			try {
+//				agents.insertTuple(t);
+//			} catch (IllegalArgumentException e) {
+//				e.printStackTrace();
+//			}
 //		}
-//		System.out.println("Relation after\n");
-//		r.printRelation();
-//		System.out.println("Relation after delete\n");
-//		//r.deleteTuple("Attr1", "equals", 4);
-//		r.printRelation();
-//		//rw.deleteTupleFromRelation(r, testTuples.get(1));
-//		System.out.println();
-//		rw.readAllTuplesOfRelation(r);
-//		if(rw.deleteRelation(r)) {
-//			System.out.println("Delete R1");
+//		agents.printRelation();
+
+		for(Tuple t : rw.readAllTuplesOfRelation(customers)) {
+			try {
+				customers.insertTuple(t);
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+				continue;
+			}
+		}
+		customers.printRelation();
+
+//		for(Tuple t : rw.readAllTuplesOfRelation(orders)) {
+//			try {
+//				orders.insertTuple(t);
+//			} catch (IllegalArgumentException e) {
+//				e.printStackTrace();
+//			}
 //		}
+//		orders.printRelation();
 	}
 	
-	public static ArrayList<Attribute> getTestAttributes() {
-		ArrayList<Attribute> attrs = new ArrayList<Attribute>();
-
-		attrs.add( new Attribute("SSN", Integer.class) );
-		attrs.add( new Attribute("Fname", String.class) );
-		attrs.add( new Attribute("Lname", String.class) );
-        attrs.add( new Attribute("Cell_Phone", String.class) );
-        attrs.add( new Attribute("Address", String.class) );
-
-		return attrs;
-
-	}
-
-    public static ArrayList<Attribute> getTestAttributes1() {
-        ArrayList<Attribute> attrs = new ArrayList<Attribute>();
-
-        attrs.add( new Attribute("SSN", Integer.class) );
-        attrs.add( new Attribute("Name", String.class) );
 
 
-        return attrs;
 
+	public static ArrayList<Attribute> getAgentsAttributes() {
+		ArrayList<Attribute> agentAttrs = new ArrayList<>();
+		agentAttrs.add(new Attribute("AGENT_CODE", String.class));
+		agentAttrs.add(new Attribute("AGENT_NAME", String.class));
+		agentAttrs.add(new Attribute("WORKING_AREA", String.class));
+		agentAttrs.add(new Attribute("COMMISSION_PER", Integer.class));
+		agentAttrs.add(new Attribute("PHONE_NO", Integer.class));
+
+		return agentAttrs;
     }
-	
-	public static ArrayList<Tuple> getTestTuples() {
 
-		HashMap<String, Object> attrValues1 = new HashMap<String, Object>();
-		attrValues1.put("SSN", Integer.valueOf(4));
-		attrValues1.put("Fname", "Phuoc");
-		attrValues1.put("Lname", "Phuoc");
-        attrValues1.put("Cell_Phone", "111-222-3333");
-        attrValues1.put("Address", "123 rd, Atlanta, USA");
+	public static ArrayList<Attribute> getCustomersAttributes() {
+		ArrayList<Attribute> customerAttrs = new ArrayList<>();
+		customerAttrs.add(new Attribute("CUST_CODE", String.class));
+		customerAttrs.add(new Attribute("CUST_NAME", String.class));
+		customerAttrs.add(new Attribute("CUST_CITY", String.class));
+		customerAttrs.add(new Attribute("CUST_COUNTRY", String.class));
+		customerAttrs.add(new Attribute("GRADE", Integer.class));
+		customerAttrs.add(new Attribute("BALANCE", Integer.class));
 
-
-        HashMap<String, Object> attrValues2 = new HashMap<String, Object>();
-        attrValues2.put("SSN", Integer.valueOf(1));
-        attrValues2.put("Fname", "Phuoccc");
-        attrValues2.put("Lname", "Nguyen");
-        attrValues2.put("Cell_Phone", "111-222-3333");
-        attrValues2.put("Address", "123 rd, Atlanta, USA");
-
-		HashMap<String, Object> attrValues3 = new HashMap<String, Object>();
-		attrValues3.put("SSN", Integer.valueOf(2));
-		attrValues3.put("Fname", "Phuoccc");
-		attrValues3.put("Lname", "Nguyen");
-		attrValues3.put("Cell_Phone", "111-222-3333");
-		attrValues3.put("Address", "123 rd, Atlanta, USA");
-
-		ArrayList<Tuple> tuples = new ArrayList<Tuple>();
-
-		tuples.add( new Tuple(attrValues1) );
-		tuples.add( new Tuple(attrValues2) );
-		tuples.add( new Tuple(attrValues3) );
-
-		return tuples;
-
+		return customerAttrs;
 	}
 
+	public static ArrayList<Attribute> getOrdersAttributes() {
+		ArrayList<Attribute> orderAttrs = new ArrayList<>();
+		orderAttrs.add(new Attribute("ORD_NUM", Integer.class));
+		orderAttrs.add(new Attribute("ORD_AMOUNT", Integer.class));
+		orderAttrs.add(new Attribute("ADVANCE_AMOUNT", Integer.class));
+		orderAttrs.add(new Attribute("ORD_DATE", String.class));
+		orderAttrs.add(new Attribute("CUST_CODE", String.class));
+		orderAttrs.add(new Attribute("AGENT_CODE", String.class));
+
+		return orderAttrs;
+	}
 }
