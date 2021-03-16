@@ -168,6 +168,23 @@ public class Relation {
 	//get the primary key of the relaiton
 	public Attribute getPK() {return this.PK;}
 
+	//get an Attribute by name
+	public Attribute getAttributeByName(String name) {
+		for(Attribute attr : this.attributes) {
+			if(attr.getName().equals(name))
+				return attr;
+		}
+		return null;
+	}
+
+//	public void changeAttributeName(String oldName, String newName) {
+//		for(int i = 0; i < this.attributes.size(); i++) {
+//			if(this.attributes.get(i).getName().equals(oldName)) {
+//				Attribute newAttr = new Attribute()
+//			}
+//		}
+//	}
+
 
 	/*-----------------------Data Manipulation-----------------------*/
 	//insert a new tuple into the relation

@@ -146,12 +146,10 @@ public class Query {
             }
         }
 
-//        ArrayList<Tuple> smallerTuples = r1.getTuples().size() < r2.getTuples().size() ? r1.getTuples() : r2.getTuples();
-//        ArrayList<Tuple> biggerTuples = r1.getTuples().size() < r2.getTuples().size() ? r2.getTuples() : r1.getTuples();
         ArrayList<Tuple> result = new ArrayList<>();
 
         for(int i = 0; i < r1.getTuples().size(); i++) {
-            if(i >= r2.getTuples().size()) break;
+//            if(i >= r2.getTuples().size()) break;
             Boolean isInBoth = false;
             for(int j = 0; j < r2.getTuples().size(); j++) {
                 if(r1.getTuples().get(i).equals(r2.getTuples().get(j))) {
@@ -166,13 +164,61 @@ public class Query {
         return new Relation(r1.getAttributes(), result);
     }
 
-//    public ArrayList<Tuple> crossJoin () {
-//
-//    }
+    public Relation crossJoin (Relation r1, Relation r2) {
+        ArrayList<Tuple> result = new ArrayList<>();
+        ArrayList<Attribute> newAttrs = new ArrayList<>(r1.getAttributes());
 
-//    public ArrayList<Tuple> equiJoiun () {
-//
-//    }
+        for (Attribute attr : r2.getAttributes()) {
+            if (r1.getAttributes().contains(attr)) {
+                newAttrs.add(new Attribute(r2.getName() + "_" + attr.getName(), attr.getType()));
+//                newAttrs.set(newAttrs.indexOf(attr), new Attribute(r1.getName()+"_"+attr.getName(), attr.getType()));
+            }
+            else
+                newAttrs.add(attr);
+        }
+
+        ArrayList<ArrayList<Object>> tuplesOfr2 = new ArrayList<>();
+        for(Attribute attr : r2.getAttributes())
+            tuplesOfr2.add(r2.getValuesOfColumn(r2.getTuples(), attr));
+
+        for(Tuple t1 : r1.getTuples()) {
+            ArrayList<Object> aTuple = new ArrayList<>();
+            for (Attribute attr : r1.getAttributes()) {
+                aTuple.add(t1.getAttribute(attr.getName()));
+            }
+            for(int i = 0; i < tuplesOfr2.get(0).size(); i++) {
+                HashMap<String, Object> newTuple = new HashMap<>();
+                ArrayList<Object> tmp = new ArrayList<>(aTuple);
+                for(int j = 0; j < tuplesOfr2.size(); j++) {
+                    tmp.add(tuplesOfr2.get(j).get(i));
+                }
+                for(int k = 0; k < tmp.size(); k++) {
+                    newTuple.put(newAttrs.get(k).getName(), tmp.get(k));
+                }
+                result.add(new Tuple(newTuple));
+            }
+        }
+
+        return new Relation(newAttrs, result);
+    }
+
+    public Relation equiJoiun (Relation r1, Relation r2, Attribute onAttr) {
+        if(!r1.getAttributeNames().contains(onAttr.getName()) || !r2.getAttributeNames().contains(onAttr.getName()))
+            throw new IllegalArgumentException(String.format("The attribute %s does not exist in either or both relations.", onAttr.getName()));
+        Relation tmp = this.crossJoin(r1, r2);
+        int r1_indexOf_onAttr = r1.getAttributes().indexOf(onAttr);
+        int r2_indexOf_onAttr = r2.getAttributes().indexOf(onAttr) + r1.getAttributes().size() - 1;
+        ArrayList<Tuple> result = new ArrayList<>();
+
+        for(Tuple t : tmp.getTuples()) {
+            if(t.getAttribute(onAttr.getName()).equals(t.getAttribute(r2.getName()+"_"+onAttr.getName())))
+//            ArrayList<Object> attrsValue = t.getAttributeValues();
+//            if(attrsValue.get().equals(attrsValue.get(r2_indexOf_onAttr)))
+                result.add(t);
+        }
+
+        return new Relation(tmp.getAttributes(), result);
+    }
 
 //    public ArrayList<Tuple> naturalJoin () {
 //

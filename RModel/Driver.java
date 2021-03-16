@@ -58,29 +58,44 @@ public class Driver {
 		ArrayList<Attribute> b = new ArrayList<Attribute>();
 		b.add(agents.getAttributes().get(1));
 		b.add(agents.getAttributes().get(4));
+		b.add(agents.getAttributes().get(3));
 //		System.out.println("Retrieve the names of all customers");
 //		query.project(a, customers).printRelation();
 
 		System.out.println("Retrieve the names and phone numbers of all agents in Bangalore");
 		query.select(b, agents, agents.getAttributes().get(2), "=", "Bangalore").printRelation();
 
-		System.out.println("Retrieve the names and phone numbers of all agents in Madrid");
-		query.select(b, agents, agents.getAttributes().get(2), "=", "Madrid").printRelation();
+		System.out.println("Retrieve the names and phone numbers of all agents in London");
+		query.select(b, agents, agents.getAttributes().get(2), "=", "London").printRelation();
 
 		System.out.println("Retrieve the names and phone numbers of all agents in Madrid or Bangalore");
 		query.union(query.select(b, agents, agents.getAttributes().get(2), "=", "Bangalore"), query.select(b, agents, agents.getAttributes().get(2), "=", "Madrid")).printRelation();
 
-		System.out.println("Interesction test");
+		System.out.println("Test cross join");
 		ArrayList<Attribute> c = new ArrayList<Attribute>();
-		c.add(agents.getAttributes().get(0));
-		ArrayList<Attribute> d = new ArrayList<Attribute>();
-		d.add(orders.getAttributes().get(5));
-		query.intersect(query.project(c, agents), query.project(d, orders)).printRelation();
+		c.add(agents.getAttributes().get(2));
+		c.add(agents.getAttributes().get(1));
+		c.add(agents.getAttributes().get(3));
+		c.add(agents.getAttributes().get(4));
 
-		System.out.println("Difference test");
-		query.project(c, agents).printRelation();
-		query.select(c, agents, agents.getAttributes().get(2), "=", "Bangalore").printRelation();
-		query.differ(query.project(c, agents), query.select(c, agents, agents.getAttributes().get(2), "=", "Bangalore")).printRelation();
+		query.select(c, agents, agents.getAttributes().get(2), "=", "London").printRelation();
+		query.crossJoin(query.select(c, agents, agents.getAttributes().get(2), "=", "London"), query.union(query.select(b, agents, agents.getAttributes().get(2), "=", "Bangalore"), query.select(b, agents, agents.getAttributes().get(2), "=", "Madrid"))).printRelation();
+
+
+		System.out.println("Test equijoin");
+		query.equiJoiun(query.select(c, agents, agents.getAttributes().get(2), "=", "London"), query.union(query.select(b, agents, agents.getAttributes().get(2), "=", "Bangalore"), query.select(b, agents, agents.getAttributes().get(2), "=", "Madrid")), agents.getAttributes().get(3)).printRelation();
+//
+//		System.out.println("Interesction test");
+//		ArrayList<Attribute> c = new ArrayList<Attribute>();
+//		c.add(agents.getAttributes().get(0));
+//		ArrayList<Attribute> d = new ArrayList<Attribute>();
+//		d.add(orders.getAttributes().get(5));
+//		query.intersect(query.project(c, agents), query.project(d, orders)).printRelation();
+//
+//		System.out.println("Difference test");
+//		query.project(c, agents).printRelation();
+//		query.select(c, agents, agents.getAttributes().get(2), "=", "Bangalore").printRelation();
+//		query.differ(query.project(c, agents), query.select(c, agents, agents.getAttributes().get(2), "=", "Bangalore")).printRelation();
 
 
 

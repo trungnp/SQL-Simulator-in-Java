@@ -52,4 +52,16 @@ public class Tuple {
 		return true;
 	}
 
+	public Map<String,Object> joinTuple(Tuple t) {
+		for(Map.Entry<String, Object> entry : t.getTupleValues().entrySet()) {
+			this.tValues.put(entry.getKey(), entry.getValue());
+		}
+
+		return this.tValues;
+	}
+
+	public void deleteAnAttribute(String key) {
+		tValues.remove(key);
+	}
+
 }
