@@ -1,11 +1,104 @@
 package RModel;
 
+
 import java.util.*;
 
 public class Query {
     private Relation relation;
 
-    //select * from relation r
+    //group by
+    public Relation select_groupby(String aggrFunction, Attribute selectAttr, Relation r, Attribute groupbyAttr ) {
+//        if(!selectAttr.getType().equals(Integer.class)) throw new IllegalArgumentException("Aggregate function applies for only numerical attribute.");
+        Relation tmp = this.project(new ArrayList<Attribute>(Collections.singletonList(groupbyAttr)), r);
+        ArrayList<Tuple> result = new ArrayList<>();
+        Relation finalRelation = null;
+        for(Tuple t1 : tmp.getTuples()) {
+            ArrayList<Integer> valuesOfOneGroup = new ArrayList<>();
+            HashMap<String, Object> aTuplpe = new HashMap<>();
+            ArrayList<Tuple> test = new ArrayList<>();
+            for(Tuple t2 : r.getTuples()) {
+                if(t1.getAttribute(groupbyAttr.getName()).equals(t2.getAttribute(groupbyAttr.getName()))) {
+//                    valuesOfOneGroup.add((Integer)t2.getAttribute(selectAttr.getName()));
+                    test.add(t2);
+                }
+            }
+            Relation rTest = this.select(selectAttr, new Relation(new ArrayList<Attribute>(Collections.singletonList(groupbyAttr)), test), aggrFunction);
+            aTuplpe.put(groupbyAttr.getName(), t1.getAttribute(groupbyAttr.getName()));
+            aTuplpe.put(rTest.getAttributeNames().get(0), rTest.getTuples().get(0).getAttribute(rTest.getAttributeNames().get(0)));
+            result.add(new Tuple(aTuplpe));
+            ArrayList<Attribute> attrs4testtt = new ArrayList<>();
+            attrs4testtt.add(groupbyAttr);
+            attrs4testtt.add(rTest.getAttributes().get(0));
+            Relation testtt = new Relation(attrs4testtt, result);
+            if(finalRelation == null) {
+                finalRelation = testtt;
+            } else {
+                finalRelation = this.union(finalRelation, testtt);
+            }
+//            switch (aggrFunction.toLowerCase()) {
+//                case "min":
+//                    aTuplpe.put(aggrFunction+"_"+selectAttr.getName(), Collections.min(valuesOfOneGroup));
+//                    break;
+//                case "max":
+//                    aTuplpe.put(aggrFunction+"_"+selectAttr.getName(), Collections.max(valuesOfOneGroup));
+//                    break;
+//                case "avg":
+//                case "average":
+//                    aTuplpe.put(aggrFunction+"_"+selectAttr.getName(), valuesOfOneGroup.stream().mapToDouble(a->a).sum()/valuesOfOneGroup.size());
+//                    break;
+//                case "sum":
+//                    aTuplpe.put(aggrFunction+"_"+selectAttr.getName(), valuesOfOneGroup.stream().mapToInt(a->a).sum());
+//                    break;
+//                case "count":
+//                    aTuplpe.put(aggrFunction+"_"+selectAttr.getName(), valuesOfOneGroup.size());
+//                    break;
+//                default:
+//                    throw new IllegalArgumentException("Aggregate function is illegal");
+//            }
+//            result.add(new Tuple(aTuplpe));
+        }
+        return finalRelation;
+    }
+
+    //select query for aggregate function
+    public Relation select(Attribute attr, Relation r, String aggrFunction) {
+        if(!attr.getType().equals(Integer.class) && !aggrFunction.equalsIgnoreCase("count")) throw new IllegalArgumentException("Attribute type must be Integer");
+        ArrayList<Tuple> result = new ArrayList<>();
+        ArrayList<Attribute> attributes = new ArrayList<>();
+        HashMap<String, Object> value = new HashMap<>();
+        attributes.add(new Attribute(aggrFunction+"_"+attr.getName(), attr.getType()));
+        ArrayList<Integer> intArr = new ArrayList<>();
+        if(aggrFunction.equalsIgnoreCase("count"))
+            value.put(aggrFunction+"_"+attr.getName(), r.getValuesOfColumn(r.getTuples(), attr).size());
+        else {
+            r.getValuesOfColumn(r.getTuples(), attr).forEach((n) -> intArr.add((Integer) n));
+            switch (aggrFunction.toLowerCase()) {
+                case "min":
+                    value.put(aggrFunction + "_" + attr.getName(), Collections.min(intArr));
+                    break;
+                case "max":
+                    value.put(aggrFunction + "_" + attr.getName(), Collections.max(intArr));
+                    break;
+                case "avg":
+                case "average":
+                    value.put(aggrFunction + "_" + attr.getName(), intArr.stream().mapToDouble(a -> a).sum() / intArr.size());
+                    break;
+                case "sum":
+                    value.put(aggrFunction + "_" + attr.getName(), intArr.stream().mapToInt(a -> a).sum());
+                    break;
+//                case "count":
+//                    value.put(aggrFunction + "_" + attr.getName(), intArr.size());
+//                    break;
+                default:
+                    throw new IllegalArgumentException("Aggregate function is illegal");
+            }
+        }
+        result.add(new Tuple(value));
+
+        return new Relation(attributes, result);
+    }
+
+    //select attributes  from relation r without condition
     public Relation select(ArrayList<Attribute> attributes, Relation r) {
         Map<String, Object> value = new HashMap<>();
         ArrayList<Tuple> tuples = new ArrayList<>();
@@ -101,7 +194,7 @@ public class Query {
     public Relation union(Relation r1, Relation r2) {
         if(r1.getAttributes().size() != r2.getAttributes().size()) throw new IllegalArgumentException("Numbers of attributes do not match.");
         else {
-            for(int i = 0; i < r1.getTuples().size(); i++) {
+            for(int i = 0; i < r1.getAttributes().size(); i++) {
                 if(!r1.getAttributes().get(i).equals(r2.getAttributes().get(i))) throw new IllegalArgumentException("Attribute types do not match.");
             }
         }
@@ -169,8 +262,8 @@ public class Query {
         ArrayList<Attribute> newAttrs = new ArrayList<>(r1.getAttributes());
 
         for (Attribute attr : r2.getAttributes()) {
-            if (r1.getAttributes().contains(attr)) {
-                newAttrs.add(new Attribute(r2.getName() + "_" + attr.getName(), attr.getType()));
+            if (r1.getAttributeNames().contains(attr.getName())) {
+                newAttrs.add(new Attribute( attr.getName()+ "_" + r2.getName(), attr.getType()));
 //                newAttrs.set(newAttrs.indexOf(attr), new Attribute(r1.getName()+"_"+attr.getName(), attr.getType()));
             }
             else
@@ -202,16 +295,15 @@ public class Query {
         return new Relation(newAttrs, result);
     }
 
-    public Relation equiJoiun (Relation r1, Relation r2, Attribute onAttr) {
+    public Relation equiJoin (Relation r1, Relation r2, Attribute onAttr) {
         if(!r1.getAttributeNames().contains(onAttr.getName()) || !r2.getAttributeNames().contains(onAttr.getName()))
             throw new IllegalArgumentException(String.format("The attribute %s does not exist in either or both relations.", onAttr.getName()));
+
         Relation tmp = this.crossJoin(r1, r2);
-        int r1_indexOf_onAttr = r1.getAttributes().indexOf(onAttr);
-        int r2_indexOf_onAttr = r2.getAttributes().indexOf(onAttr) + r1.getAttributes().size() - 1;
         ArrayList<Tuple> result = new ArrayList<>();
 
         for(Tuple t : tmp.getTuples()) {
-            if(t.getAttribute(onAttr.getName()).equals(t.getAttribute(r2.getName()+"_"+onAttr.getName())))
+            if(t.getAttribute(onAttr.getName()).equals(t.getAttribute(onAttr.getName()+"_"+r2.getName())))
 //            ArrayList<Object> attrsValue = t.getAttributeValues();
 //            if(attrsValue.get().equals(attrsValue.get(r2_indexOf_onAttr)))
                 result.add(t);
@@ -220,7 +312,36 @@ public class Query {
         return new Relation(tmp.getAttributes(), result);
     }
 
-//    public ArrayList<Tuple> naturalJoin () {
-//
-//    }
+    public Relation naturalJoin (Relation r1, Relation r2) {
+        ArrayList<Attribute> onAttrs = new ArrayList<>();
+        for(Attribute attr : r2.getAttributes()) {
+            if(r1.getAttributeNames().contains(attr.getName()))
+                onAttrs.add(attr);
+        }
+        if(onAttrs.size() == 0) throw new IllegalArgumentException("There is no attribute that has same name in both relations");
+
+        Relation tmp1 = this.equiJoin(r1, r2, onAttrs.get(0));
+        ArrayList<Attribute> tmp = new ArrayList<>(tmp1.getAttributes());
+        for(int i = 1; i < onAttrs.size(); i++) {
+//            Relation tmp2 = this.equiJoin(r1, r2, onAttrs.get(i));
+            tmp1 = equiJoin(tmp1, r2, onAttrs.get(i));
+        }
+
+        ArrayList<Tuple> result = new ArrayList<>();
+        for(Attribute attr : onAttrs) {
+            for(Tuple t : tmp1.getTuples()) {
+                if(t.getAttribute(attr.getName()).equals(t.getAttribute(attr.getName()+"_"+r2.getName()))) {
+                    t.deleteAnAttribute(attr.getName()+"_"+r2.getName());
+                    result.add(t);
+//                    Attribute a = new Attribute(attr.getName()+"_"+r2.getName(), attr.getType());
+//                    int i = tmp.indexOf(a);
+
+                }
+            }
+            tmp.removeIf(s->s.getName().equals(attr.getName()+"_"+r2.getName()));
+        }
+//        tmp1.getAttributes().removeIf(t->t.getName().equals(a))
+
+        return new Relation(tmp, result);
+    }
 }

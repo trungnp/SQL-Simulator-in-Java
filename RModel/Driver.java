@@ -62,28 +62,71 @@ public class Driver {
 //		System.out.println("Retrieve the names of all customers");
 //		query.project(a, customers).printRelation();
 
-		System.out.println("Retrieve the names and phone numbers of all agents in Bangalore");
-		query.select(b, agents, agents.getAttributes().get(2), "=", "Bangalore").printRelation();
+//		System.out.println("Retrieve the names and phone numbers of all agents in Bangalore");
+//		query.select(b, agents, agents.getAttributes().get(2), "=", "Bangalore").printRelation();
+//
+//		System.out.println("Retrieve the names and phone numbers of all agents in London");
+//		query.select(b, agents, agents.getAttributes().get(2), "=", "London").printRelation();
+//
+//		System.out.println("Retrieve the names and phone numbers of all agents in Madrid or Bangalore");
+//		query.union(query.select(b, agents, agents.getAttributes().get(2), "=", "Bangalore"), query.select(b, agents, agents.getAttributes().get(2), "=", "Madrid")).printRelation();
+//
+//		System.out.println("Test cross join");
+//		ArrayList<Attribute> c = new ArrayList<Attribute>();
+//		c.add(agents.getAttributes().get(2));
+//		c.add(agents.getAttributes().get(1));
+//		c.add(agents.getAttributes().get(3));
+//		c.add(agents.getAttributes().get(4));
+//
+//		query.select(c, agents, agents.getAttributes().get(2), "=", "London").printRelation();
+//		query.crossJoin(query.select(c, agents, agents.getAttributes().get(2), "=", "London"), query.union(query.select(b, agents, agents.getAttributes().get(2), "=", "Bangalore"), query.select(b, agents, agents.getAttributes().get(2), "=", "Madrid"))).printRelation();
+//
+//
+//		System.out.println("Test equijoin");
+//		query.equiJoin(query.select(c, agents, agents.getAttributes().get(2), "=", "London"), query.union(query.select(b, agents, agents.getAttributes().get(2), "=", "Bangalore"), query.select(b, agents, agents.getAttributes().get(2), "=", "Madrid")), agents.getAttributes().get(3)).printRelation();
+//
+//		System.out.println("Test natural join");
+//		query.naturalJoin(orders, agents).printRelation();
 
-		System.out.println("Retrieve the names and phone numbers of all agents in London");
-		query.select(b, agents, agents.getAttributes().get(2), "=", "London").printRelation();
-
-		System.out.println("Retrieve the names and phone numbers of all agents in Madrid or Bangalore");
-		query.union(query.select(b, agents, agents.getAttributes().get(2), "=", "Bangalore"), query.select(b, agents, agents.getAttributes().get(2), "=", "Madrid")).printRelation();
-
-		System.out.println("Test cross join");
-		ArrayList<Attribute> c = new ArrayList<Attribute>();
-		c.add(agents.getAttributes().get(2));
-		c.add(agents.getAttributes().get(1));
-		c.add(agents.getAttributes().get(3));
-		c.add(agents.getAttributes().get(4));
-
-		query.select(c, agents, agents.getAttributes().get(2), "=", "London").printRelation();
-		query.crossJoin(query.select(c, agents, agents.getAttributes().get(2), "=", "London"), query.union(query.select(b, agents, agents.getAttributes().get(2), "=", "Bangalore"), query.select(b, agents, agents.getAttributes().get(2), "=", "Madrid"))).printRelation();
+		Relation select = query.select(orders.getAttributes(), orders, orders.getAttributes().get(1), ">", 4000);
+		select.printRelation();
+		Relation naturalJoin = query.naturalJoin(select, agents);
+		naturalJoin.printRelation();
+		Relation naturalJoin1 = query.naturalJoin(naturalJoin, customers);
+		naturalJoin1.printRelation();
+		ArrayList<Attribute> arr = new ArrayList<>();
+//		System.out.println(naturalJoin.getAttributes().toString());
+		arr.add(naturalJoin1.getAttributes().get(10));
+		arr.add(naturalJoin1.getAttributes().get(6));
+		query.project(arr,naturalJoin1).printRelation();
 
 
-		System.out.println("Test equijoin");
-		query.equiJoiun(query.select(c, agents, agents.getAttributes().get(2), "=", "London"), query.union(query.select(b, agents, agents.getAttributes().get(2), "=", "Bangalore"), query.select(b, agents, agents.getAttributes().get(2), "=", "Madrid")), agents.getAttributes().get(3)).printRelation();
+		ArrayList<Attribute> test = new ArrayList<>();
+		test.add(customers.getAttributes().get(5));
+		query.select(test, customers).printRelation();
+
+		System.out.println("Test aggregate");
+		query.select(customers.getAttributes().get(5), customers, "min").printRelation();
+		query.select(customers.getAttributes().get(5), customers, "max").printRelation();
+		query.select(customers.getAttributes().get(5), customers, "avg").printRelation();
+		query.select(customers.getAttributes().get(5), customers, "sum").printRelation();
+		query.select(customers.getAttributes().get(5), customers, "count").printRelation();
+
+
+		Relation rrr = query.naturalJoin(customers, query.naturalJoin(orders,agents));
+		rrr.printRelation();
+		query.select_groupby("count", rrr.getAttributes().get(0), rrr, rrr.getAttributes().get(10)).printRelation();
+		query.select_groupby("sum", rrr.getAttributes().get(7), rrr, rrr.getAttributes().get(10)).printRelation();
+
+		ArrayList<Attribute> bbb = new ArrayList<>();
+		bbb.add(rrr.getAttributes().get(10));
+		bbb.add(rrr.getAttributes().get(11));
+		bbb.add(rrr.getAttributes().get(14));
+		Relation aaa = query.project(bbb, rrr);
+		query.naturalJoin(aaa,query.select_groupby("sum", rrr.getAttributes().get(7), rrr, rrr.getAttributes().get(10))).printRelation();
+
+
+
 //
 //		System.out.println("Interesction test");
 //		ArrayList<Attribute> c = new ArrayList<Attribute>();
