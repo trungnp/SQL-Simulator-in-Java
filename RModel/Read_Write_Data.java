@@ -114,7 +114,8 @@ public class Read_Write_Data {
             for(String s : allLInes) {
                 String[] tupleValues = s.split(",");
                 HashMap<String, Object> value = new HashMap<>();
-                for(int i = 0; i < attributes.size(); i++) {
+//                for(int i = 0; i < attributes.size(); i++) {
+                for(int i = attributes.size()-1; i >= 0; i--) {
                     if(attributes.get(i).getType().equals(String.class))
                         value.put(attributes.get(i).getName(), tupleValues[i].strip());
                     else if(attributes.get(i).getType().equals(Integer.class)) {

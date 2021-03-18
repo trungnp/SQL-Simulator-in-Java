@@ -65,6 +65,13 @@ public class Relation {
 		check_Duplicate(tuples);
 	}
 
+	//create a new relation with only a relation name, attributes and tuples for the output of a query.
+	public Relation(String name, Collection<Attribute> attrs, Collection<Tuple> tuples) {
+		this.name = name;
+		this.attributes = new ArrayList<Attribute>(attrs);
+		this.tuples = new ArrayList<Tuple>(tuples);
+	}
+
 	//create a new relation with only attributes and tuples for the output of a query.
 	public Relation(Collection<Attribute> attrs, Collection<Tuple> tuples) {
 		this.attributes = new ArrayList<Attribute>(attrs);
@@ -190,14 +197,20 @@ public class Relation {
 	//insert a new tuple into the relation
 	public void insertTuple(Tuple newTuple) {
 		ArrayList<Tuple> tmp = new ArrayList<>(getTuples());
+		String s = String.format("INSERT TUPLE INTO RELATION %s (", this.getName());
+		for(Attribute attr : this.getAttributes())
+			s += newTuple.getAttribute(attr.getName()).toString() + ",";
+		s = s.substring(0, s.length()-1) + ") ";
 		try {
 			tmp.add(newTuple);
 			if(trigger_Constraint_after_Insert(tmp)) {
 				this.tuples = tmp;
-				System.out.println("Insert new tuple to relation "+this.name+" successfully:  " +newTuple.toString());
+				System.out.println(s + "successfully.");
+//				System.out.println("Insert new tuple to relation "+this.name+" successfully:  " +newTuple.toString());
 			}
 		} catch (IllegalArgumentException e) {
-			System.out.println("Insert new tuple to relation "+this.name+" failed due to " +e.getMessage()+ ":  " +newTuple.toString());
+			System.out.println(s + "failed due to: " +e.getMessage());
+//			System.out.println("Insert new tuple to relation "+this.name+" failed due to " +e.getMessage()+ ":  " +newTuple.toString());
 //			e.printStackTrace();
 		}
 //		if(trigger_Constraint_after_Insert(tmp))

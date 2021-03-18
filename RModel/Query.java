@@ -2,6 +2,7 @@ package RModel;
 
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Query {
     private Relation relation;
@@ -29,7 +30,7 @@ public class Query {
             ArrayList<Attribute> attrs4testtt = new ArrayList<>();
             attrs4testtt.add(groupbyAttr);
             attrs4testtt.add(rTest.getAttributes().get(0));
-            Relation testtt = new Relation(attrs4testtt, result);
+            Relation testtt = new Relation(r.getName(), attrs4testtt, result);
             if(finalRelation == null) {
                 finalRelation = testtt;
             } else {
@@ -95,7 +96,7 @@ public class Query {
         }
         result.add(new Tuple(value));
 
-        return new Relation(attributes, result);
+        return new Relation(r.getName(), attributes, result);
     }
 
     //select attributes  from relation r without condition
@@ -120,14 +121,15 @@ public class Query {
             no_Of_Rows++;
             no_Of_Attrs = 0;
         }
-        relation = new Relation(attributes, tuples);
+        relation = new Relation(r.getName(), attributes, tuples);
 //        relation.printTuple();
         return relation;
     }
 
     //select a set of attributes from relation r with a condition
     public Relation select(ArrayList<Attribute> attributes, Relation r, Attribute whereAttrs, String condition, Object operand) throws Exception {
-        Relation tmp = new Relation(r.getName(), r.getAttributes(), r.getTuples(), r.getPK(), r.getFKs());
+//        Relation tmp = new Relation(r.getName(), r.getAttributes(), r.getTuples(), r.getPK(), r.getFKs());
+        Relation tmp = new Relation(r.getName(), r.getAttributes(), r.getTuples());
         if(condition.equals("=")) {
             tmp.getTuples().removeIf(t->!t.getAttribute(whereAttrs.getName()).equals(operand));
         } else {
@@ -147,7 +149,7 @@ public class Query {
             }
         }
 
-        Relation result = new Relation(attributes, tmp.getTuples());
+        Relation result = new Relation(r.getName(), attributes, tmp.getTuples());
         return result;
     }
 
@@ -185,7 +187,7 @@ public class Query {
             no_Of_Rows++;
             no_Of_Attrs = 0;
         }
-        relation = new Relation(attributes, tuples);
+        relation = new Relation(r.getName(), attributes, tuples);
 //        relation.printTuple();
         return relation;
     }
@@ -291,8 +293,11 @@ public class Query {
                 result.add(new Tuple(newTuple));
             }
         }
+        ArrayList<String> relationName = new ArrayList<>(Arrays.asList(r1.getName().split("_")));
+        relationName.addAll(Arrays.asList(r2.getName().split("_")));
+        relationName = (ArrayList<String>) relationName.stream().distinct().collect(Collectors.toList());
 
-        return new Relation(newAttrs, result);
+        return new Relation(String.join("_", relationName),newAttrs, result);
     }
 
     public Relation equiJoin (Relation r1, Relation r2, Attribute onAttr) {
@@ -309,7 +314,11 @@ public class Query {
                 result.add(t);
         }
 
-        return new Relation(tmp.getAttributes(), result);
+        ArrayList<String> relationName = new ArrayList<>(Arrays.asList(r1.getName().split("_")));
+        relationName.addAll(Arrays.asList(r2.getName().split("_")));
+        relationName = (ArrayList<String>) relationName.stream().distinct().collect(Collectors.toList());
+
+        return new Relation(String.join("_", relationName), tmp.getAttributes(), result);
     }
 
     public Relation naturalJoin (Relation r1, Relation r2) {
@@ -341,7 +350,12 @@ public class Query {
             tmp.removeIf(s->s.getName().equals(attr.getName()+"_"+r2.getName()));
         }
 //        tmp1.getAttributes().removeIf(t->t.getName().equals(a))
+        ArrayList<String> relationName = new ArrayList<>(Arrays.asList(r1.getName().split("_")));
+        relationName.addAll(Arrays.asList(r2.getName().split("_")));
+        relationName = (ArrayList<String>) relationName.stream().distinct().collect(Collectors.toList());
 
-        return new Relation(tmp, result);
+//        String name = String.join("_", relationName);
+        //r1.getName()+"_"+r2.getName()
+        return new Relation(String.join("_", relationName),tmp, result);
     }
 }

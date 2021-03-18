@@ -5,8 +5,8 @@ import java.util.*;
 public class Schema {
     String name;
     Set<Relation> relations;
-    Set<String> constraints;
-    public Schema(String name, Set<Relation> relations, Set<String> constraints) {
+    ArrayList<String> constraints;
+    public Schema(String name, Set<Relation> relations, ArrayList<String> constraints) {
         this.name = name;
         this.relations = relations;
         this.constraints = constraints;
