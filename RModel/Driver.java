@@ -161,21 +161,27 @@ public class Driver {
 //		query.select(customers.getAttributes().get(5), customers, "sum").printRelation();
 //		query.select(customers.getAttributes().get(5), customers, "count").printRelation();
 //
-//
-		Relation rrr = query.naturalJoin(customers, query.naturalJoin(orders,agents));
-		rrr.printRelation();
-		Relation count_cust = query.select_groupby("count", rrr.getAttributes().get(0), rrr, rrr.getAttributes().get(10));
-		Relation sum_ord_amount = query.select_groupby("sum", rrr.getAttributes().get(7), rrr, rrr.getAttributes().get(10));
+		//Natural join 3 relations CUSTOMERS, ORDERS, and AGENTS
+		Relation customers_orders_agents = query.naturalJoin(customers, query.naturalJoin(orders,agents));
+		customers_orders_agents.printRelation();
 
-		query.select_groupby("count", rrr.getAttributes().get(0), rrr, rrr.getAttributes().get(10)).printRelation();
-		query.select_groupby("sum", rrr.getAttributes().get(7), rrr, rrr.getAttributes().get(10)).printRelation();
+		//Count number of customers for each agent
+		Relation count_cust = query.select_groupby("count", customers_orders_agents.getAttributes().get(0), customers_orders_agents, customers_orders_agents.getAttributes().get(10));
+
+		//Sum total order amount for each agent
+		Relation sum_ord_amount = query.select_groupby("sum", customers_orders_agents.getAttributes().get(7), customers_orders_agents, customers_orders_agents.getAttributes().get(10));
+
+		count_cust.printRelation();
+		sum_ord_amount.printRelation();
 
 		ArrayList<Attribute> bbb = new ArrayList<>();
-		bbb.add(rrr.getAttributes().get(10));
-		bbb.add(rrr.getAttributes().get(11));
-//		bbb.add(rrr.getAttributes().get(14));
-		Relation aaa = query.project(bbb, rrr);
-		query.naturalJoin(aaa, query.naturalJoin(count_cust, sum_ord_amount)).printRelation();
+		bbb.add(customers_orders_agents.getAttributes().get(10));
+		bbb.add(customers_orders_agents.getAttributes().get(14));
+		//Get phone number of each agent
+		Relation AGENT_PHONE = query.project(bbb, customers_orders_agents);
+
+		//List phone number, number of customers, and total order amount for each agent
+		query.naturalJoin(AGENT_PHONE, query.naturalJoin(count_cust, sum_ord_amount)).printRelation();
 
 
 

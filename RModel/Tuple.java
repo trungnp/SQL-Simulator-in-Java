@@ -36,6 +36,7 @@ public class Tuple {
 		
 	}
 
+	//replace value of attribute attr by new value
 	public void replaceAttributeValue(Attribute attr, Object value) {
 		this.tValues.replace(attr.getName(), value);
 	}
