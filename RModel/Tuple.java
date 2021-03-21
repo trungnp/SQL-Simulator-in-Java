@@ -45,6 +45,7 @@ public class Tuple {
 		return new ArrayList<Object>(tValues.values());
 	}
 
+	//overwrite equals method to compare tuples
 	public boolean equals(Tuple t) {
 		for(Map.Entry<String, Object> entry : tValues.entrySet()) {
 			if(!entry.getValue().equals(t.getAttribute(entry.getKey())))
@@ -53,14 +54,7 @@ public class Tuple {
 		return true;
 	}
 
-	public Map<String,Object> joinTuple(Tuple t) {
-		for(Map.Entry<String, Object> entry : t.getTupleValues().entrySet()) {
-			this.tValues.put(entry.getKey(), entry.getValue());
-		}
-
-		return this.tValues;
-	}
-
+	//delete a value of the tuple
 	public void deleteAnAttribute(String key) {
 		tValues.remove(key);
 	}

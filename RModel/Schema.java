@@ -6,6 +6,8 @@ public class Schema {
     String name;
     Set<Relation> relations;
     ArrayList<String> constraints;
+
+    //create a schema with a set of relation and a set of user-defined constraints (string type)
     public Schema(String name, Set<Relation> relations, ArrayList<String> constraints) {
         this.name = name;
         this.relations = relations;

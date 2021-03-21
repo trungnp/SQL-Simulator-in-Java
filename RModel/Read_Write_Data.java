@@ -1,5 +1,8 @@
 package RModel;
 
+/*
+This class to handle read/write data from/to file
+ */
 
 import java.io.*;
 import java.nio.file.Files;
@@ -99,11 +102,13 @@ public class Read_Write_Data {
         }
     }
 
+    //delete file relation r
     public boolean deleteRelation(Relation r) {
         String pathName = "RModel/Relations/" + r.getName() + ".txt";
         return new File(pathName).delete();
     }
 
+    //read all tuples from file relation r
     public ArrayList<Tuple> readAllTuplesOfRelation(Relation r) {
         String pathName = "RModel/Relations/" + r.getName() + ".txt";
         ArrayList<Attribute> attributes = r.getAttributes();
@@ -114,7 +119,6 @@ public class Read_Write_Data {
             for(String s : allLInes) {
                 String[] tupleValues = s.split(",");
                 HashMap<String, Object> value = new HashMap<>();
-//                for(int i = 0; i < attributes.size(); i++) {
                 for(int i = attributes.size()-1; i >= 0; i--) {
                     if(attributes.get(i).getType().equals(String.class))
                         value.put(attributes.get(i).getName(), tupleValues[i].strip());

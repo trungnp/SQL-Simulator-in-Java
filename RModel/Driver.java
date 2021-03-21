@@ -39,6 +39,7 @@ public class Driver {
 		relations.add(customers);
 		relations.add(orders);
 
+		//Create a schema SALES with 3 relations and constraints above
 		Schema schema = new Schema("SALES", relations, constraints);
 		schema.printSchema();
 		schema.printConstraints();

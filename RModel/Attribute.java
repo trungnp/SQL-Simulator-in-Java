@@ -24,6 +24,7 @@ public class Attribute {
     	return String.format("Attribute %s <{%s}>", this.name, this.type.toString());
     }
 
+    //overwrite equals method to compare attributes
     public boolean equals(Attribute a) {
         return this.getName().equals(a.getName());
     }
