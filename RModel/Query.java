@@ -11,7 +11,7 @@ public class Query {
     group by a relation r by the attribute groupbyAttr and then apply aggregate function aggrFunction on the attribute selectAttr
     return result as a relation
      */
-    public Relation select_groupby(String aggrFunction, Attribute selectAttr, Relation r, Attribute groupbyAttr ) {
+    public Relation select_groupby(String aggrFunction, Attribute selectAttr, Relation r, Attribute groupbyAttr) {
         Relation tmp = this.project(new ArrayList<Attribute>(Collections.singletonList(groupbyAttr)), r);
         ArrayList<Tuple> result = new ArrayList<>();
         Relation finalRelation = null;

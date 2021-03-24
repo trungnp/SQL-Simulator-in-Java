@@ -124,7 +124,7 @@ Return result as a relation
 select(ArrayList<Attribute> attributes, Relation r, Attribute whereAttrs, String condition, Object operand)
 
 Example:
-/*
+/**
 select AGENT_NAME, PHONE_NO
 from AGENTS
 where WORKING_AREA = 'Bangalore';
@@ -135,3 +135,116 @@ b.add(agents.getAttributes().get(4));
 query.select(b, agents, agents.getAttributes().get(2), "=", "Bangalore");
 
 ------Select Query With Aggregate Function------
+/**
+Select aggrFunction(attr) from r. Min, Max, Avg, Sum work for only numerical column
+Return result as a relation with only one attribute aggrFunction_attr.getName()
+*/
+select(Attribute attr, Relation r, String aggrFunction)
+
+Example:
+//find minimum balance from relation customers
+query.select(customers.getAttributes().get(5), customers, "min");
+
+------Select Query With Groupby and Aggregate Function------
+/**
+Group by the relation r by the attribute groupbyAttr and then apply aggregate function aggrFunction on the attribute selectAttr
+Return result as a relation with two attributes groupbyAttr and aggrFunction_selectAttr.getName()
+*/
+select_groupby(String aggrFunction, Attribute selectAttr, Relation r, Attribute groupbyAttr)
+
+Example:
+//Count number of customers for each agent
+query.select_groupby("count", customers_orders_agents.getAttributes().get(0), customers_orders_agents, customers_orders_agents.getAttributes().get(10));
+
+------Union two relations------
+/*
+Union two relations r1 and r2
+return result as a relation
+*/
+union(Relation r1, Relation r2)
+
+Example:
+ArrayList<Attribute> b = new ArrayList<Attribute>();
+b.add(agents.getAttributes().get(1));
+b.add(agents.getAttributes().get(4));
+//Get name of phone number of agents in Bangalore
+Relation bangalore = query.select(b, agents, agents.getAttributes().get(2), "=", "Bangalore");
+//Get name of phone number of agents in Madrid
+Relation madrid = query.select(b, agents, agents.getAttributes().get(2), "=", "Madrid");
+//Get name and phone number of agents who either in Bangalore or Madrid
+query.union(bangalore, madrid);
+
+------Intersect two relations------
+/*
+Intersect two relation r1 and r2
+Return result as a relation
+*/
+intersect(Relation r1, Relation r2)
+
+Example:
+ArrayList<Attribute> c = new ArrayList<Attribute>();
+c.add(agents.getAttributes().get(0));
+ArrayList<Attribute> d = new ArrayList<Attribute>();
+d.add(orders.getAttributes().get(5));
+Relation r1 = query.project(c, agents); //project column AGENT_CODE on relation agents
+Relation r2 = query.project(d, orders); //project column AGENT_CODE on relation orders
+query.intersect(r1, r2); //find AGENT_CODE that appear on both relation r1 and r2
+
+------Differ two relations------
+ArrayList<Attribute> c = new ArrayList<Attribute>();
+c.add(agents.getAttributes().get(0));
+Relation r1 = query.project(c, agents); //project column AGENT_CODE on relation agents
+Relation r2 = query.select(c, agents, agents.getAttributes().get(2), "=", "Bangalore"); //find AGENT_CODE in Bangalore
+query.differ(r1, r2); //find AGENT_CODE that not in Bangalore
+
+------Cross join two relations------
+/*
+cross join two relation r1 and r2
+return result as a relation
+*/
+crossJoin(Relation r1, Relation r2)
+
+Example:
+ArrayList<Attribute> b = new ArrayList<Attribute>();
+b.add(agents.getAttributes().get(1));
+b.add(agents.getAttributes().get(4));
+ArrayList<Attribute> c = new ArrayList<Attribute>();
+c.add(agents.getAttributes().get(1));
+c.add(agents.getAttributes().get(4));
+//select AGENT_CODE and PHONE_NO of agent in London
+Relation r1 = query.select(c, agents, agents.getAttributes().get(2), "=", "London");
+//select AGENT_CODE and PHONE_NO of agent in Bangalore
+Relation r2 = query.select(b, agents, agents.getAttributes().get(2), "=", "Bangalore");
+query.crossJoin(r1, r2); //cross join two relation r1 and r2 above
+
+
+------Equi-join two relations------
+/*
+equi-join two relations r1 and r2 on the attribute onAttr
+return result as a relation
+*/
+equiJoin(Relation r1, Relation r2, Attribute onAttr)
+
+Example:
+ArrayList<Attribute> b = new ArrayList<Attribute>();
+b.add(agents.getAttributes().get(1));
+b.add(agents.getAttributes().get(4));
+ArrayList<Attribute> c = new ArrayList<Attribute>();
+c.add(agents.getAttributes().get(1));
+c.add(agents.getAttributes().get(4));
+//select AGENT_CODE and PHONE_NO of agent in London
+Relation r1 = query.select(c, agents, agents.getAttributes().get(2), "=", "London");
+//select AGENT_CODE and PHONE_NO of agent in Bangalore
+Relation r2 = query.select(b, agents, agents.getAttributes().get(2), "=", "Bangalore"); 
+query.equiJoin(r1, r2, agents.getAttributes().get(3));
+
+------Natural join two relations------
+/*
+natural join two relation r1 and r2
+return result as a relation
+*/
+naturalJoin(Relation r1, Relation r2)
+
+Example:
+query.naturalJoin(orders, agents); //natural join two relation orders and agents
+
